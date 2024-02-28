@@ -1,17 +1,16 @@
-# Start from a Debian-based image with the latest version of Go installed
-FROM golang:latest
-
-# Set the working directory inside the container
+# Create build stage based on buster image
+FROM golang:1.22 AS builder
+# Create working directory under /app
 WORKDIR /app
-
-# Copy the local package files to the container's workspace
-ADD . /app
-
-# Build the application inside the container
-RUN go build -o main .
-
-# Document that the service listens on port 8080
+# Copy over all go config (go.mod, go.sum etc.)
+COPY go.* ./
+# Install any required modules
+RUN go mod download
+# Copy over Go source code
+COPY *.go ./
+# Run the Go build and output binary under hello_go_http
+RUN go build -o /hello_go_http
+# Make sure to expose the port the HTTP server is using
 EXPOSE 8080
-
-# Run the executable
-CMD ["/app/main"]
+# Run the app binary when we run the container
+ENTRYPOINT ["/hello_go_http"]
